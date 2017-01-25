@@ -1,0 +1,295 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+    <link rel="stylesheet" href="css/leaflet.css" />  <!-- https://unpkg.com/leaflet@1.0.2/dist/leaflet.css -->
+    <link rel="stylesheet" href="css/style.css"/>
+</head>
+
+<body>
+
+
+  <div class="spinner"></div>
+  <div class="opacity_overlay"></div>
+  <div id='map'></div>
+
+  <div class="padded_options">
+    
+    <div class=flex_parent>
+      <div class="flex_item">
+        <label>Choose input data:</label>
+        <select id="data_csv_select">
+        </select>
+      </div>
+      
+      <div class="flex_item scenario_select_container">
+        <label>Choose scenario:</label>
+        <select id="scenario_select">
+        </select>
+      </div>
+      
+      <div class="flex_item">
+        <label>Choose optimisation intensity:</label>
+        <select id="optimisation_intensity_select">
+        </select>
+      </div>
+
+      <div class="flex_item">
+        <label>Choose variable to optimise</label>
+        <select id="optimisation_target_select">
+        </select>
+      </div>
+
+      <div class="flex_item">
+        <label>Import additional supply and demand data</label>
+        <input type="file" name="File Import" id="fileupload_data" accept=".csv">
+      </div>
+
+      <div class="flex_item">
+        <label>Import scenarios</label>
+        <input type="file" name="File Import" id="fileupload_scenario" accept=".csv">
+      </div>
+
+    </div>
+  </div>
+  
+
+  <div id="stats_panel" class = "control_padding">
+    <div id ="key_show_hide">
+
+    </div>
+    <div id="stats_panel_div"></div>
+  </div>
+
+  <div id="supply_change_panel" class="control_padding">
+    <h2>Change supply capacities</h2>
+    <input id="unlimited_supply_mode_checkbox" type="checkbox" checked>Unlimited supply mode</input>
+    <label class="unlimited_supply_hide hidden">Supplier:</label>
+    <select  class="unlimited_supply_hide hidden" id="supply_to_change_select">
+    </select>
+    <label class = "unlimited_supply_hide hidden">Choose value</label>
+    <button value = "0.909090909", class= "change_supply_button unlimited_supply_hide hidden", id="decrease_supply_10_pc_button">-10%</button>
+    <input id="supply_capacity_input" class="unlimited_supply_hide hidden" type="number"></input>
+    <button value = "1.1", class= "change_supply_button unlimited_supply_hide hidden", id="increase_supply_10_pc_button">+10%</button>
+  </div>
+
+<!--   <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/2.2.0/topojson.min.js"></script>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.6/handlebars.min.js"></script>
+ -->  
+  <script src="js/third_party/topojson.min.js"></script>
+  <script src="js/third_party/d3.v4.min.js"></script>
+  <script src="js/third_party/underscore-min.js"></script>
+  <script src="js/third_party/jquery.min.js"></script>
+  <script src="js/third_party/leaflet.js"></script>
+  <script src="js/third_party/handlebars.min.js"></script>
+
+  <script src="js/custom/namespace.js"></script>
+  <script src="js/custom/utilities.js"></script>
+  <script src="js/custom/settings.js"></script>
+  <script src="js/custom/csv_process.js"></script>
+  <script src="js/custom/key.js"></script>
+
+  <script src="js/custom/build_interface.js"></script>
+
+ 
+  <script src="js/custom/supply.js"></script>
+  <script src="js/custom/demand.js"></script>
+  <script src="js/custom/allocation.js"></script>
+  <script src="js/custom/supply_collection.js"></script>
+  <script src="js/custom/demand_collection.js"></script>
+  <script src="js/custom/supply_demand_model.js"></script>
+  <script src="js/custom/controller.js"></script>
+
+  <script src="js/custom/map.js"></script>
+  <script src="js/custom/supply_points_layer.js"></script>
+  <script src="js/custom/demand_allocation_layer.js"></script>
+
+  <script src="js/custom/main.js"></script>
+
+  <script id="model_summary" type="text/x-handlebars-template">
+  <div id="model_summary_show_hide">
+  
+    <div class="info_title">
+      <h2 class="info_title_content hide_header">Model summary</h2>
+      <button class="info_title_content hide_header hide_button" value="model_summary">Hide</button>
+    </div>
+
+    <table class="stats_table">  
+      <tr>
+        <th>Total demand</th>
+        <td>{{short_number this.demand_collection.total_demand}}</td>
+      </tr>
+      <tr>
+        <th>Demand unallocated</th>
+        <td>{{short_number this.demand_unallocated}}</td>
+      </tr>
+
+      <tr>
+        <th>Total supply</th>
+        <td>{{short_number this.supply_collection.total_supply}}</td>
+      </tr>
+
+      <tr>
+        <th>Supply unallocated</th>
+        <td>{{short_number this.supply_unallocated}}</td>
+      </tr>
+
+      <tr>
+        <th>Total loss</th>
+        <td>{{short_number this.total_loss}}</td>
+      </tr>
+   
+    </table>
+  </div>
+   
+
+  </script> 
+
+  <script id="supply_info" type="text/x-handlebars-template">
+  <div id="supply_info_show_hide">
+    <div class="info_title">
+    <h2 class="info_title_content hide_header">Supply info</h2>
+    <button class="info_title_content hide_header hide_button" value = "supply_info">Hide</button>
+  </div>
+    <table class="stats_table">
+      <tr>
+        <th>Supply name:</th>
+        <td>{{this.supply_name}}</td>
+      </tr>
+      <tr>
+        <th>Supply ID:</th>
+        <td>{{this.supply_id}}</td>
+      </tr>
+      <tr>
+        <th>Supply allocated:</th>
+        <td>{{short_number this.supply_allocated}}</td>
+      </tr>
+      <tr>
+        <th>Supply unallocated:</th>
+        <td>{{short_number this.supply_unallocated}}</td>
+      </tr>
+      <tr>
+        <th>Demand from demanders closest to this supply</th>
+        <td>{{short_number this.demand_for_supply_if_all_closest_allocated}}</td>
+      </tr>
+
+
+      
+    </table>
+    </div>  
+  </script> 
+
+ <script id="supply_allocation_info" type="text/x-handlebars-template">
+ <div id="supply_allocation_info_show_hide">
+ <div class="info_title">
+    <h2 class="info_title_content hide_header">Allocations to this supply</h2>
+    <button class="info_title_content hide_header hide_button" value = "supply_allocation_info">Hide</button>
+  </div>
+
+    <table class="listing_table">
+    <tr>
+      <th>Demand name</th>
+      <th>Demand id</th>
+      <th>Allocation size</th>
+      <th>Loss</th>
+    </tr>
+    {{#each allocations}}
+    <tr>
+      <td>{{this.demand_object.demand_name}}</td>
+      <td>{{this.demand_object.demand_id}}</td>
+      <td>{{short_number this.allocation_size}}</td>
+      <td>{{short_number this.loss}}</td>
+       </tr>
+      {{/each}}
+    </table>
+    </div>
+  </script> 
+
+  <script id="demand_allocation_info" type="text/x-handlebars-template">
+  <div id="demand_allocation_info_show_hide">
+
+     <div class="info_title">
+    <h2 class="info_title_content hide_header">Allocations from this demand</h2>
+    <button class="info_title_content hide_header hide_button" value="demand_allocation_info">Hide</button>
+  </div>
+
+    <table class="listing_table">
+    <tr>
+      <th>Supply name</th>
+      <th>Supply id</th>
+      <th>Allocation size</th>
+      <th>Loss</th>
+    </tr>
+    {{#each allocations}}
+    <tr>
+      <td>{{this.supply_object.supply_name}}</td>
+      <td>{{this.supply_object.supply_id}}</td>
+      <td>{{short_number this.allocation_size}}</td>
+      <td>{{short_number this.loss}}</td>
+       </tr>
+      {{/each}}
+    </table>
+    </div>
+  </script> 
+
+  <script id="demand_info" type="text/x-handlebars-template">
+  <div id="demand_info_show_hide">
+      <div class="info_title">
+    <h2 class="info_title_content hide_header">Demand info</h2>
+    <button class="info_title_content hide_header hide_button" value="demand_info">Hide</button>
+  </div>
+
+  	<table class="stats_table">
+  		<tr>
+  			<th>Demand name:</th>
+  			<td> {{demand_name}}</td>
+  		</tr>
+      <tr>
+        <th>Demand id:</th>
+        <td> {{demand_id}}</td>
+      </tr>
+  		<tr>
+  			<th>Demand allocated:</th>
+  			<td> {{short_number demand_allocated}}</td>
+  		</tr>
+  		<tr>
+  			<th>Demand unallocated:</th>
+  			<td> {{short_number demand_unallocated}}</td>
+  		</tr>
+  		<tr>
+  			<th>Largest allocation:</th>
+  			<td> {{largest_allocation.supply_object.supply_name}}</td>
+        
+  		</tr>
+      <tr>
+        <th>Travel time to largest allocation:</th>
+        <td> {{short_number this.largest_allocation_time}}</td>
+      </tr>
+  	
+    	</table>
+  </div>
+    </script>	
+
+    <script id="buttons" type="text/x-handlebars-template">
+    <h2 class="info_title_content hide_header">Choose info elements to show:</h2>
+
+
+    <button id="show_button_key" class = "show_buttons" value="key">Show key</button>
+    <button id="show_button_model_summary" class = "show_buttons" value="model_summary">Show model summary</button>
+    <button id="show_button_supply_info" class = "show_buttons" value="supply_info">Show supply info</button>
+    <button id="show_button_supply_allocation_info" class = "show_buttons" value="supply_allocation_info">Show supply allocations</button>
+    <button id="show_button_demand_info" class = "show_buttons" value="demand_info">Show demand info</button>
+    <button id="show_button_demand_allocation_info" class = "show_buttons" value="demand_allocation_info">Show demand allocations</button>
+
+    </script> 
+
+
+
+
+</body>
+</html
