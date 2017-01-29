@@ -19,7 +19,7 @@ function parse_ajax_topo_data(topo_data) {
     var geo_collection = topojson.feature(geo_collection, geo_collection.objects.subunits)
 
     //England, Wales
-    geo_collection.features = [geo_collection.features[0], geo_collection.features[4]]
+    geo_collection.features = [geo_collection.features[0]] 
     VMT.geo_collection = geo_collection
 
 }
