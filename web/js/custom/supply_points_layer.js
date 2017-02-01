@@ -54,7 +54,7 @@ function SupplyPointsLayer() {
             })
             .attr("stroke",function(d) {
             
-                if (_.contains(VMT.custom.existing_list, d.supply_id)) {
+                if (_.contains(VMT.custom.existing_list, d.supply_name)) {
                     return "black"
                 } else {
                     return "yellow"
